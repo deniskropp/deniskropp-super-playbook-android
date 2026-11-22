@@ -1,0 +1,208 @@
+{
+  "entities": {
+    "PlaybookRun": {
+      "title": "PlaybookRun",
+      "description": "A 20-step OCS KickLang Super Playbook v1.0.0 execution run scoped to an authenticated user.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "description": "Owner Firebase Auth UID." },
+        "title": { "type": "string", "description": "Short run title." },
+        "objective": { "type": "string", "description": "High-level user objective (⫻data/obj)." },
+        "cmdMode": { "type": "string", "enum": ["Strict", "Creative", "Fluid", "Swarm", "Predictive", "Hybrid"] },
+        "hybridComponents": { "type": "string", "description": "Optional declared component modes when cmdMode is Hybrid." },
+        "projectedRunFlagMode": { "type": "string", "enum": ["Strict", "Creative", "Fluid", "Swarm"] },
+        "cmdLang": { "type": "string", "enum": ["EN", "DE", "KickLang", "VeriLog", "SystemC"] },
+        "currentStep": { "type": "integer" },
+        "stepsDone": { "type": "integer" },
+        "status": { "type": "string", "enum": ["IDLE", "RUNNING", "HALTED", "COMPLETED", "SEALED"] },
+        "haltReason": { "type": "string" },
+        "invokedAtomicAgents": { "type": "array" },
+        "logicTypesUsed": { "type": "array" },
+        "tasPrimitivesUsed": { "type": "array" },
+        "schemaDriftTypes": { "type": "array" },
+        "selectedWePlanOptions": { "type": "array" },
+        "structuralCoherence": { "type": "number" },
+        "structuralStatus": { "type": "string", "enum": ["pending_measurement", "published"] },
+        "structuralMethod": { "type": "string", "enum": ["asserted", "measured"] },
+        "sonicCoherence": { "type": "number" },
+        "sonicStatus": { "type": "string", "enum": ["open", "pending_wet_lift", "scored"] },
+        "universalityScore": { "type": "number" },
+        "specClarityScore": { "type": "number" },
+        "consentTokenPresent": { "type": "boolean" },
+        "consentScope": { "type": "string" },
+        "errorActive": { "type": "boolean" },
+        "errorRecoveryPath": { "type": "string" },
+        "atomicSignOffCount": { "type": "integer" },
+        "signedOffAgents": { "type": "array" },
+        "sealedSiblingId": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Server timestamp written via FieldValue.serverTimestamp()." },
+        "updatedAt": { "type": "string", "format": "date-time", "description": "Server timestamp written via FieldValue.serverTimestamp()." }
+      },
+      "required": [
+        "userId", "title", "objective", "cmdMode", "projectedRunFlagMode", "cmdLang",
+        "currentStep", "stepsDone", "status", "invokedAtomicAgents", "logicTypesUsed",
+        "tasPrimitivesUsed", "schemaDriftTypes", "selectedWePlanOptions",
+        "structuralStatus", "structuralMethod", "sonicStatus",
+        "consentTokenPresent", "errorActive", "atomicSignOffCount", "signedOffAgents",
+        "createdAt", "updatedAt"
+      ]
+    },
+    "StepExecution": {
+      "title": "StepExecution",
+      "description": "Execution record and validated KickLang output for one of the 20 meta-playbook steps.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "runId": { "type": "string" },
+        "stepNumber": { "type": "integer" },
+        "phase": { "type": "integer" },
+        "agentName": { "type": "string" },
+        "primitive": { "type": "string" },
+        "displayExecutable": { "type": "string" },
+        "displayInput": { "type": "string" },
+        "displayExpectedOutput": { "type": "string" },
+        "kickLangOutput": { "type": "string" },
+        "summary": { "type": "string" },
+        "logicBranch": { "type": "string" },
+        "ruleViolations": { "type": "array" },
+        "iterations": { "type": "integer" },
+        "metricScore": { "type": "number" },
+        "status": { "type": "string", "enum": ["COMPLETED", "HALTED", "FAILED"] },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Server timestamp written via FieldValue.serverTimestamp()." },
+        "updatedAt": { "type": "string", "format": "date-time", "description": "Server timestamp written via FieldValue.serverTimestamp()." }
+      },
+      "required": [
+        "userId", "runId", "stepNumber", "phase", "agentName", "primitive",
+        "displayExecutable", "displayInput", "displayExpectedOutput",
+        "kickLangOutput", "summary", "logicBranch", "ruleViolations",
+        "iterations", "status", "createdAt", "updatedAt"
+      ]
+    },
+    "MoleculeRun": {
+      "title": "MoleculeRun",
+      "description": "Compact ⫻flow/molecule runtime session binding the 6-field ⫻context/klmx hexad.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "molecule": { "type": "string" },
+        "formula": { "type": "string" },
+        "model": { "type": "string" },
+        "space": { "type": "string" },
+        "scope": { "type": "string" },
+        "reference": { "type": "string" },
+        "sourceCmdMode": { "type": "string", "enum": ["Strict", "Creative", "Fluid", "Swarm", "Predictive", "Hybrid"] },
+        "projectedRunFlagMode": { "type": "string", "enum": ["Strict", "Creative", "Fluid", "Swarm"] },
+        "currentStage": { "type": "string", "enum": ["Prepare", "Combine", "Validate", "Retry", "Finalize", "Seal"] },
+        "stageOutputs": { "type": "array" },
+        "sonicDelegated": { "type": "boolean" },
+        "status": { "type": "string", "enum": ["DRAFT", "RUNNING", "SEALED"] },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Server timestamp written via FieldValue.serverTimestamp()." },
+        "updatedAt": { "type": "string", "format": "date-time", "description": "Server timestamp written via FieldValue.serverTimestamp()." }
+      },
+      "required": [
+        "userId", "molecule", "formula", "model", "space", "scope", "reference",
+        "sourceCmdMode", "projectedRunFlagMode", "currentStage", "stageOutputs",
+        "sonicDelegated", "status", "createdAt", "updatedAt"
+      ]
+    },
+    "SonicRun": {
+      "title": "SonicRun",
+      "description": "QllickFizz Sonique — Lyria3 domain flow run with RULE-10 consent gate and dual-axis sonic scoring.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "title": { "type": "string" },
+        "creativeBrief": { "type": "string" },
+        "energy": { "type": "integer" },
+        "adaptiveTempo": { "type": "boolean" },
+        "contrastPath": { "type": "string", "enum": ["PATH_A_AMBIENT", "PATH_B_PULSE", "PATH_C_SURGE", "PATH_D_FULL_BLOOM"] },
+        "microTiming": { "type": "string" },
+        "spatialMapping": { "type": "string" },
+        "consentRequired": { "type": "boolean" },
+        "consentTokenPresent": { "type": "boolean" },
+        "consentToken": { "type": "string" },
+        "kickGuardDimaApproved": { "type": "boolean" },
+        "kickGuardFizzApproved": { "type": "boolean" },
+        "kickGuardMonitorApproved": { "type": "boolean" },
+        "promptEnvelope": { "type": "string" },
+        "sonicCoherence": { "type": "number" },
+        "sonicStatus": { "type": "string", "enum": ["open", "pending_wet_lift", "scored"] },
+        "status": { "type": "string", "enum": ["CONFIGURING", "HALTED_CONSENT", "GENERATED", "SEALED"] },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Server timestamp written via FieldValue.serverTimestamp()." },
+        "updatedAt": { "type": "string", "format": "date-time", "description": "Server timestamp written via FieldValue.serverTimestamp()." }
+      },
+      "required": [
+        "userId", "title", "creativeBrief", "energy", "adaptiveTempo", "contrastPath",
+        "microTiming", "spatialMapping", "consentRequired", "consentTokenPresent",
+        "kickGuardDimaApproved", "kickGuardFizzApproved", "kickGuardMonitorApproved",
+        "promptEnvelope", "sonicStatus", "status", "createdAt", "updatedAt"
+      ]
+    },
+    "DecisionRecord": {
+      "title": "DecisionRecord",
+      "description": "Governance resolution record for Inherited Open Decisions (1-12) and Derivation Conflicts (SP-A..SP-H).",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "code": { "type": "string" },
+        "category": { "type": "string", "enum": ["INHERITED", "CONFLICT"] },
+        "status": { "type": "string", "enum": ["OPEN", "CONFIRMED", "AMENDED", "DEFERRED"] },
+        "selectedResolution": { "type": "string" },
+        "rationale": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Server timestamp written via FieldValue.serverTimestamp()." },
+        "updatedAt": { "type": "string", "format": "date-time", "description": "Server timestamp written via FieldValue.serverTimestamp()." }
+      },
+      "required": ["userId", "code", "category", "status", "selectedResolution", "rationale", "createdAt", "updatedAt"]
+    },
+    "SealedSibling": {
+      "title": "SealedSibling",
+      "description": "Immutable RULE-11 sealed sibling snapshot citing its parent version. Updates and deletes are denied by rules.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "versionLabel": { "type": "string" },
+        "parentVersionRef": { "type": "string" },
+        "protocolVersion": { "type": "string" },
+        "languageModel": { "type": "string" },
+        "sourceKind": { "type": "string", "enum": ["META_PLAYBOOK", "MOLECULE", "SONIC", "GOVERNANCE"] },
+        "sourceId": { "type": "string" },
+        "structuralCoherence": { "type": "number" },
+        "sonicCoherence": { "type": "number" },
+        "sonicStatus": { "type": "string", "enum": ["open", "pending_wet_lift", "scored"] },
+        "transcript": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Server timestamp written via FieldValue.serverTimestamp()." }
+      },
+      "required": [
+        "userId", "versionLabel", "parentVersionRef", "protocolVersion",
+        "languageModel", "sourceKind", "sourceId", "structuralCoherence",
+        "sonicStatus", "transcript", "createdAt"
+      ]
+    }
+  },
+  "firestore": {
+    "/users/{userId}/runs/{runId}": {
+      "schema": { "$ref": "#/entities/PlaybookRun" },
+      "description": "User-owned 20-step Meta-Playbook runs."
+    },
+    "/users/{userId}/runs/{runId}/steps/{stepId}": {
+      "schema": { "$ref": "#/entities/StepExecution" },
+      "description": "Per-step execution records under a Meta-Playbook run."
+    },
+    "/users/{userId}/molecules/{moleculeId}": {
+      "schema": { "$ref": "#/entities/MoleculeRun" },
+      "description": "User-owned compact molecule runtime sessions."
+    },
+    "/users/{userId}/sonicRuns/{sonicId}": {
+      "schema": { "$ref": "#/entities/SonicRun" },
+      "description": "User-owned QllickFizz Sonique Lyria3 runs."
+    },
+    "/users/{userId}/decisions/{decisionId}": {
+      "schema": { "$ref": "#/entities/DecisionRecord" },
+      "description": "User-owned governance resolutions for Open Decisions and Derivation Conflicts."
+    },
+    "/users/{userId}/sealedSiblings/{sealId}": {
+      "schema": { "$ref": "#/entities/SealedSibling" },
+      "description": "Immutable RULE-11 sealed sibling snapshots."
+    }
+  }
+}

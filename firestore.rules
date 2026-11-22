@@ -1,0 +1,414 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Global safety net: default deny everything
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // --- Hardened Primitive Helpers ---
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidTimestamp(ts) {
+      return ts is timestamp && ts <= request.time;
+    }
+
+    function isBoundedString(val, minLen, maxLen) {
+      return val is string && val.size() >= minLen && val.size() <= maxLen;
+    }
+
+    function isBoundedStringList(val, maxSize) {
+      return val is list && val.size() <= maxSize && (val.size() == 0 || val[0] is string);
+    }
+
+    function isOptionalString(data, key, maxLen) {
+      return !(key in data) || data[key] == null || (data[key] is string && data[key].size() <= maxLen);
+    }
+
+    function isOptionalUnitNumber(data, key) {
+      return !(key in data) || data[key] == null || (data[key] is number && data[key] >= 0.0 && data[key] <= 1.0);
+    }
+
+    function isValidCmdMode(mode) {
+      return mode in ['Strict', 'Creative', 'Fluid', 'Swarm', 'Predictive', 'Hybrid'];
+    }
+
+    function isValidRunFlagMode(mode) {
+      return mode in ['Strict', 'Creative', 'Fluid', 'Swarm'];
+    }
+
+    function isValidCmdLang(lang) {
+      return lang in ['EN', 'DE', 'KickLang', 'VeriLog', 'SystemC'];
+    }
+
+    function isValidSonicStatus(status) {
+      return status in ['open', 'pending_wet_lift', 'scored'];
+    }
+
+    // --- Entity Validation Blueprints ---
+
+    function isValidPlaybookRun(data) {
+      return isBoundedString(data.userId, 1, 128) &&
+             isBoundedString(data.title, 1, 120) &&
+             isBoundedString(data.objective, 1, 2000) &&
+             isValidCmdMode(data.cmdMode) &&
+             isValidRunFlagMode(data.projectedRunFlagMode) &&
+             isValidCmdLang(data.cmdLang) &&
+             data.currentStep is int && data.currentStep >= 0 && data.currentStep <= 20 &&
+             data.stepsDone is int && data.stepsDone >= 0 && data.stepsDone <= 20 &&
+             data.status in ['IDLE', 'RUNNING', 'HALTED', 'COMPLETED', 'SEALED'] &&
+             isBoundedStringList(data.invokedAtomicAgents, 14) &&
+             isBoundedStringList(data.logicTypesUsed, 4) &&
+             isBoundedStringList(data.tasPrimitivesUsed, 9) &&
+             isBoundedStringList(data.schemaDriftTypes, 30) &&
+             isBoundedStringList(data.selectedWePlanOptions, 5) &&
+             data.structuralStatus in ['pending_measurement', 'published'] &&
+             data.structuralMethod in ['asserted', 'measured'] &&
+             isValidSonicStatus(data.sonicStatus) &&
+             data.consentTokenPresent is bool &&
+             data.errorActive is bool &&
+             data.atomicSignOffCount is int && data.atomicSignOffCount >= 0 && data.atomicSignOffCount <= 14 &&
+             isBoundedStringList(data.signedOffAgents, 14) &&
+             isOptionalString(data, 'hybridComponents', 120) &&
+             isOptionalString(data, 'haltReason', 500) &&
+             isOptionalUnitNumber(data, 'structuralCoherence') &&
+             isOptionalUnitNumber(data, 'sonicCoherence') &&
+             isOptionalUnitNumber(data, 'universalityScore') &&
+             isOptionalUnitNumber(data, 'specClarityScore') &&
+             isOptionalString(data, 'consentScope', 300) &&
+             isOptionalString(data, 'errorRecoveryPath', 500) &&
+             isOptionalString(data, 'sealedSiblingId', 128);
+    }
+
+    function isValidStepExecution(data, runId) {
+      return isBoundedString(data.userId, 1, 128) &&
+             data.runId == runId &&
+             data.stepNumber is int && data.stepNumber >= 1 && data.stepNumber <= 20 &&
+             data.phase is int && data.phase >= 1 && data.phase <= 6 &&
+             isBoundedString(data.agentName, 1, 60) &&
+             isBoundedString(data.primitive, 1, 60) &&
+             isBoundedString(data.displayExecutable, 1, 200) &&
+             isBoundedString(data.displayInput, 1, 400) &&
+             isBoundedString(data.displayExpectedOutput, 1, 300) &&
+             isBoundedString(data.kickLangOutput, 1, 20000) &&
+             isBoundedString(data.summary, 1, 1000) &&
+             isBoundedString(data.logicBranch, 0, 100) &&
+             isBoundedStringList(data.ruleViolations, 20) &&
+             data.iterations is int && data.iterations >= 1 && data.iterations <= 10 &&
+             data.status in ['COMPLETED', 'HALTED', 'FAILED'] &&
+             isOptionalUnitNumber(data, 'metricScore');
+    }
+
+    function isValidMoleculeRun(data) {
+      return isBoundedString(data.userId, 1, 128) &&
+             isBoundedString(data.molecule, 1, 120) &&
+             isBoundedString(data.formula, 1, 300) &&
+             isBoundedString(data.model, 1, 100) &&
+             isBoundedString(data.space, 1, 120) &&
+             isBoundedString(data.scope, 1, 300) &&
+             isBoundedString(data.reference, 1, 300) &&
+             isValidCmdMode(data.sourceCmdMode) &&
+             isValidRunFlagMode(data.projectedRunFlagMode) &&
+             data.currentStage in ['Prepare', 'Combine', 'Validate', 'Retry', 'Finalize', 'Seal'] &&
+             isBoundedStringList(data.stageOutputs, 6) &&
+             data.sonicDelegated is bool &&
+             data.status in ['DRAFT', 'RUNNING', 'SEALED'];
+    }
+
+    function isValidSonicRun(data) {
+      return isBoundedString(data.userId, 1, 128) &&
+             isBoundedString(data.title, 1, 120) &&
+             isBoundedString(data.creativeBrief, 1, 1500) &&
+             data.energy is int && data.energy >= 1 && data.energy <= 5 &&
+             data.adaptiveTempo is bool &&
+             data.contrastPath in ['PATH_A_AMBIENT', 'PATH_B_PULSE', 'PATH_C_SURGE', 'PATH_D_FULL_BLOOM'] &&
+             isBoundedString(data.microTiming, 1, 120) &&
+             isBoundedString(data.spatialMapping, 1, 300) &&
+             data.consentRequired is bool &&
+             data.consentTokenPresent is bool &&
+             data.kickGuardDimaApproved is bool &&
+             data.kickGuardFizzApproved is bool &&
+             data.kickGuardMonitorApproved is bool &&
+             isBoundedString(data.promptEnvelope, 0, 20000) &&
+             isValidSonicStatus(data.sonicStatus) &&
+             data.status in ['CONFIGURING', 'HALTED_CONSENT', 'GENERATED', 'SEALED'] &&
+             isOptionalString(data, 'consentToken', 128) &&
+             isOptionalUnitNumber(data, 'sonicCoherence');
+    }
+
+    function isValidDecisionRecord(data) {
+      return isBoundedString(data.userId, 1, 128) &&
+             isBoundedString(data.code, 1, 20) &&
+             data.category in ['INHERITED', 'CONFLICT'] &&
+             data.status in ['OPEN', 'CONFIRMED', 'AMENDED', 'DEFERRED'] &&
+             isBoundedString(data.selectedResolution, 0, 500) &&
+             isBoundedString(data.rationale, 0, 1500);
+    }
+
+    function isValidSealedSibling(data) {
+      return isBoundedString(data.userId, 1, 128) &&
+             isBoundedString(data.versionLabel, 1, 120) &&
+             isBoundedString(data.parentVersionRef, 1, 160) &&
+             isBoundedString(data.protocolVersion, 1, 30) &&
+             isBoundedString(data.languageModel, 1, 80) &&
+             data.sourceKind in ['META_PLAYBOOK', 'MOLECULE', 'SONIC', 'GOVERNANCE'] &&
+             isBoundedString(data.sourceId, 1, 128) &&
+             data.structuralCoherence is number && data.structuralCoherence >= 0.0 && data.structuralCoherence <= 1.0 &&
+             isValidSonicStatus(data.sonicStatus) &&
+             isBoundedString(data.transcript, 1, 40000) &&
+             isOptionalUnitNumber(data, 'sonicCoherence');
+    }
+
+    // --- Collection Rules (Per-User Multi-Tenant Isolation) ---
+
+    match /users/{userId}/runs/{runId} {
+      allow get: if isOwner(userId) && isValidId(runId);
+      allow list: if isOwner(userId);
+
+      allow create: if isOwner(userId) &&
+                       isValidId(runId) &&
+                       incoming().userId == userId &&
+                       incoming().keys().hasAll([
+                         'userId', 'title', 'objective', 'cmdMode', 'projectedRunFlagMode',
+                         'cmdLang', 'currentStep', 'stepsDone', 'status', 'invokedAtomicAgents',
+                         'logicTypesUsed', 'tasPrimitivesUsed', 'schemaDriftTypes',
+                         'selectedWePlanOptions', 'structuralStatus', 'structuralMethod',
+                         'sonicStatus', 'consentTokenPresent', 'errorActive',
+                         'atomicSignOffCount', 'signedOffAgents', 'createdAt', 'updatedAt'
+                       ]) &&
+                       incoming().keys().hasOnly([
+                         'userId', 'title', 'objective', 'cmdMode', 'hybridComponents',
+                         'projectedRunFlagMode', 'cmdLang', 'currentStep', 'stepsDone', 'status',
+                         'haltReason', 'invokedAtomicAgents', 'logicTypesUsed', 'tasPrimitivesUsed',
+                         'schemaDriftTypes', 'selectedWePlanOptions', 'structuralCoherence',
+                         'structuralStatus', 'structuralMethod', 'sonicCoherence', 'sonicStatus',
+                         'universalityScore', 'specClarityScore', 'consentTokenPresent',
+                         'consentScope', 'errorActive', 'errorRecoveryPath',
+                         'atomicSignOffCount', 'signedOffAgents', 'sealedSiblingId',
+                         'createdAt', 'updatedAt'
+                       ]) &&
+                       isValidPlaybookRun(incoming()) &&
+                       isValidTimestamp(incoming().createdAt) &&
+                       isValidTimestamp(incoming().updatedAt);
+
+      allow update: if isOwner(userId) &&
+                       isValidId(runId) &&
+                       isValidPlaybookRun(incoming()) &&
+                       existing().status != 'SEALED' &&
+                       incoming().userId == existing().userId &&
+                       incoming().createdAt == existing().createdAt &&
+                       isValidTimestamp(incoming().updatedAt) &&
+                       incoming().diff(existing()).affectedKeys().hasOnly([
+                         'title', 'cmdMode', 'hybridComponents', 'projectedRunFlagMode', 'cmdLang',
+                         'currentStep', 'stepsDone', 'status', 'haltReason', 'invokedAtomicAgents',
+                         'logicTypesUsed', 'tasPrimitivesUsed', 'schemaDriftTypes',
+                         'selectedWePlanOptions', 'structuralCoherence', 'structuralStatus',
+                         'structuralMethod', 'sonicCoherence', 'sonicStatus',
+                         'universalityScore', 'specClarityScore', 'consentTokenPresent',
+                         'consentScope', 'errorActive', 'errorRecoveryPath',
+                         'atomicSignOffCount', 'signedOffAgents', 'sealedSiblingId', 'updatedAt'
+                       ]);
+
+      allow delete: if isOwner(userId) && isValidId(runId);
+
+      match /steps/{stepId} {
+        allow get: if isOwner(userId) && isValidId(runId) && isValidId(stepId);
+        allow list: if isOwner(userId) && isValidId(runId);
+
+        allow create: if isOwner(userId) &&
+                         isValidId(runId) &&
+                         isValidId(stepId) &&
+                         incoming().userId == userId &&
+                         incoming().keys().hasAll([
+                           'userId', 'runId', 'stepNumber', 'phase', 'agentName', 'primitive',
+                           'displayExecutable', 'displayInput', 'displayExpectedOutput',
+                           'kickLangOutput', 'summary', 'logicBranch', 'ruleViolations',
+                           'iterations', 'status', 'createdAt', 'updatedAt'
+                         ]) &&
+                         incoming().keys().hasOnly([
+                           'userId', 'runId', 'stepNumber', 'phase', 'agentName', 'primitive',
+                           'displayExecutable', 'displayInput', 'displayExpectedOutput',
+                           'kickLangOutput', 'summary', 'logicBranch', 'ruleViolations',
+                           'iterations', 'metricScore', 'status', 'createdAt', 'updatedAt'
+                         ]) &&
+                         isValidStepExecution(incoming(), runId) &&
+                         isValidTimestamp(incoming().createdAt) &&
+                         isValidTimestamp(incoming().updatedAt) &&
+                         exists(/databases/$(database)/documents/users/$(userId)/runs/$(runId));
+
+        allow update: if isOwner(userId) &&
+                         isValidId(runId) &&
+                         isValidId(stepId) &&
+                         isValidStepExecution(incoming(), runId) &&
+                         incoming().userId == existing().userId &&
+                         incoming().runId == existing().runId &&
+                         incoming().stepNumber == existing().stepNumber &&
+                         incoming().createdAt == existing().createdAt &&
+                         isValidTimestamp(incoming().updatedAt) &&
+                         incoming().diff(existing()).affectedKeys().hasOnly([
+                           'kickLangOutput', 'summary', 'logicBranch', 'ruleViolations',
+                           'iterations', 'metricScore', 'status', 'updatedAt'
+                         ]);
+
+        allow delete: if isOwner(userId) && isValidId(runId) && isValidId(stepId);
+      }
+    }
+
+    match /users/{userId}/molecules/{moleculeId} {
+      allow get: if isOwner(userId) && isValidId(moleculeId);
+      allow list: if isOwner(userId);
+
+      allow create: if isOwner(userId) &&
+                       isValidId(moleculeId) &&
+                       incoming().userId == userId &&
+                       incoming().keys().hasAll([
+                         'userId', 'molecule', 'formula', 'model', 'space', 'scope', 'reference',
+                         'sourceCmdMode', 'projectedRunFlagMode', 'currentStage', 'stageOutputs',
+                         'sonicDelegated', 'status', 'createdAt', 'updatedAt'
+                       ]) &&
+                       incoming().keys().hasOnly([
+                         'userId', 'molecule', 'formula', 'model', 'space', 'scope', 'reference',
+                         'sourceCmdMode', 'projectedRunFlagMode', 'currentStage', 'stageOutputs',
+                         'sonicDelegated', 'status', 'createdAt', 'updatedAt'
+                       ]) &&
+                       isValidMoleculeRun(incoming()) &&
+                       isValidTimestamp(incoming().createdAt) &&
+                       isValidTimestamp(incoming().updatedAt);
+
+      allow update: if isOwner(userId) &&
+                       isValidId(moleculeId) &&
+                       isValidMoleculeRun(incoming()) &&
+                       existing().status != 'SEALED' &&
+                       incoming().userId == existing().userId &&
+                       incoming().createdAt == existing().createdAt &&
+                       isValidTimestamp(incoming().updatedAt) &&
+                       incoming().diff(existing()).affectedKeys().hasOnly([
+                         'molecule', 'formula', 'model', 'space', 'scope', 'reference',
+                         'sourceCmdMode', 'projectedRunFlagMode', 'currentStage', 'stageOutputs',
+                         'sonicDelegated', 'status', 'updatedAt'
+                       ]);
+
+      allow delete: if isOwner(userId) && isValidId(moleculeId);
+    }
+
+    match /users/{userId}/sonicRuns/{sonicId} {
+      allow get: if isOwner(userId) && isValidId(sonicId);
+      allow list: if isOwner(userId);
+
+      allow create: if isOwner(userId) &&
+                       isValidId(sonicId) &&
+                       incoming().userId == userId &&
+                       incoming().keys().hasAll([
+                         'userId', 'title', 'creativeBrief', 'energy', 'adaptiveTempo',
+                         'contrastPath', 'microTiming', 'spatialMapping', 'consentRequired',
+                         'consentTokenPresent', 'kickGuardDimaApproved', 'kickGuardFizzApproved',
+                         'kickGuardMonitorApproved', 'promptEnvelope', 'sonicStatus',
+                         'status', 'createdAt', 'updatedAt'
+                       ]) &&
+                       incoming().keys().hasOnly([
+                         'userId', 'title', 'creativeBrief', 'energy', 'adaptiveTempo',
+                         'contrastPath', 'microTiming', 'spatialMapping', 'consentRequired',
+                         'consentTokenPresent', 'consentToken', 'kickGuardDimaApproved',
+                         'kickGuardFizzApproved', 'kickGuardMonitorApproved', 'promptEnvelope',
+                         'sonicCoherence', 'sonicStatus', 'status', 'createdAt', 'updatedAt'
+                       ]) &&
+                       isValidSonicRun(incoming()) &&
+                       isValidTimestamp(incoming().createdAt) &&
+                       isValidTimestamp(incoming().updatedAt);
+
+      allow update: if isOwner(userId) &&
+                       isValidId(sonicId) &&
+                       isValidSonicRun(incoming()) &&
+                       existing().status != 'SEALED' &&
+                       incoming().userId == existing().userId &&
+                       incoming().createdAt == existing().createdAt &&
+                       isValidTimestamp(incoming().updatedAt) &&
+                       incoming().diff(existing()).affectedKeys().hasOnly([
+                         'title', 'creativeBrief', 'energy', 'adaptiveTempo', 'contrastPath',
+                         'microTiming', 'spatialMapping', 'consentRequired', 'consentTokenPresent',
+                         'consentToken', 'kickGuardDimaApproved', 'kickGuardFizzApproved',
+                         'kickGuardMonitorApproved', 'promptEnvelope', 'sonicCoherence',
+                         'sonicStatus', 'status', 'updatedAt'
+                       ]);
+
+      allow delete: if isOwner(userId) && isValidId(sonicId);
+    }
+
+    match /users/{userId}/decisions/{decisionId} {
+      allow get: if isOwner(userId) && isValidId(decisionId);
+      allow list: if isOwner(userId);
+
+      allow create: if isOwner(userId) &&
+                       isValidId(decisionId) &&
+                       incoming().userId == userId &&
+                       incoming().keys().hasAll([
+                         'userId', 'code', 'category', 'status',
+                         'selectedResolution', 'rationale', 'createdAt', 'updatedAt'
+                       ]) &&
+                       incoming().keys().hasOnly([
+                         'userId', 'code', 'category', 'status',
+                         'selectedResolution', 'rationale', 'createdAt', 'updatedAt'
+                       ]) &&
+                       isValidDecisionRecord(incoming()) &&
+                       isValidTimestamp(incoming().createdAt) &&
+                       isValidTimestamp(incoming().updatedAt);
+
+      allow update: if isOwner(userId) &&
+                       isValidId(decisionId) &&
+                       isValidDecisionRecord(incoming()) &&
+                       incoming().userId == existing().userId &&
+                       incoming().code == existing().code &&
+                       incoming().category == existing().category &&
+                       incoming().createdAt == existing().createdAt &&
+                       isValidTimestamp(incoming().updatedAt) &&
+                       incoming().diff(existing()).affectedKeys().hasOnly([
+                         'status', 'selectedResolution', 'rationale', 'updatedAt'
+                       ]);
+
+      allow delete: if isOwner(userId) && isValidId(decisionId);
+    }
+
+    // RULE-11: Sealed siblings are strictly immutable once created.
+    match /users/{userId}/sealedSiblings/{sealId} {
+      allow get: if isOwner(userId) && isValidId(sealId);
+      allow list: if isOwner(userId);
+
+      allow create: if isOwner(userId) &&
+                       isValidId(sealId) &&
+                       incoming().userId == userId &&
+                       incoming().keys().hasAll([
+                         'userId', 'versionLabel', 'parentVersionRef', 'protocolVersion',
+                         'languageModel', 'sourceKind', 'sourceId', 'structuralCoherence',
+                         'sonicStatus', 'transcript', 'createdAt'
+                       ]) &&
+                       incoming().keys().hasOnly([
+                         'userId', 'versionLabel', 'parentVersionRef', 'protocolVersion',
+                         'languageModel', 'sourceKind', 'sourceId', 'structuralCoherence',
+                         'sonicCoherence', 'sonicStatus', 'transcript', 'createdAt'
+                       ]) &&
+                       isValidSealedSibling(incoming()) &&
+                       isValidTimestamp(incoming().createdAt);
+
+      allow update, delete: if false;
+    }
+  }
+}

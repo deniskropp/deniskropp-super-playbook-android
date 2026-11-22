@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Hexagonal OCS Telemetry Frame inside 66dp safe zone -->
+    <path
+        android:fillColor="#1622D3EE"
+        android:pathData="M54,24 L78,38 L78,70 L54,84 L30,70 L30,38 Z"
+        android:strokeWidth="2.8"
+        android:strokeColor="#FF22D3EE" />
+    <!-- Bold KickLang ⫻ Double-Stroke Glyph Emblem -->
+    <path
+        android:fillColor="#FF22D3EE"
+        android:pathData="M43,39 L48.5,39 L48.5,69 L43,69 Z" />
+    <path
+        android:fillColor="#FF22D3EE"
+        android:pathData="M59.5,39 L65,39 L65,69 L59.5,69 Z" />
+    <path
+        android:fillColor="#FFF59E0B"
+        android:pathData="M37,48.5 L71,44 L71,49.5 L37,54 Z" />
+    <path
+        android:fillColor="#FF22D3EE"
+        android:pathData="M37,58.5 L71,54 L71,59.5 L37,64 Z" />
+    <!-- Apex Orchestrator Node -->
+    <path
+        android:fillColor="#FF10B981"
+        android:pathData="M54,28 A3.2,3.2 0 1,1 54,34.4 A3.2,3.2 0 1,1 54,28 Z" />
+</vector>

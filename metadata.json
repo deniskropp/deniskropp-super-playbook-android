@@ -1,0 +1,6 @@
+{
+  "name": "OCS Runtime",
+  "description": "Full OCS KickLang Super Playbook v1.0.0 runtime with live 14-agent Gemini swarm, RULE-01..11 validation, dual-axis coherence telemetry, AR-00L visualizers, and cloud sync.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
